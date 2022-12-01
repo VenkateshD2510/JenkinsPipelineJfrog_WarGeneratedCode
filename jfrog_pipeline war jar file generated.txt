@@ -1,0 +1,46 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage("scm")
+        {
+            steps
+            {
+            git 'https://github.com/VenkateshD2510/game-of-life.git'
+            }
+        }
+        stage("build")
+        {
+            steps
+            {
+                bat 'mvn package'
+            }
+        }
+		stage("jfrog")
+        {
+            steps
+            {
+                script
+				{
+				 def SERVER_ID = 'artifactory'
+				 def server = Artifactory.server SERVER_ID
+				 def uploadSpec = """
+				 {
+				  "files":[{
+				  "pattern" : "gameoflife-web/target/*.war",
+				  "target"  :  "example-repo-local"
+				  },
+				  {
+				    "pattern" : "gameoflife-core/target/*.jar",
+					"target"  :  "example-repo-local"
+					}
+					]
+				}"""
+				server.upload(uploadSpec)
+				}
+				  }
+        }
+    }
+    
+}
